@@ -5,9 +5,14 @@ import LessonControlButtons from "../Modules/LessonControlButtons";
 import { FaCaretDown } from "react-icons/fa6";
 import AssignmentControlButtons from "./AssignmentControlButtons";
 import { MdOutlineAssignment } from "react-icons/md";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
+import * as db from "../../Database";
 
 export default function Assignments() {
+  const { cid } = useParams();
+  const assignments = db.assignments;
+  const courses = db.courses;
+  const course = courses.find((course) => course._id === cid);
   return (
     <div id="wd-assignments">
       <div
@@ -44,74 +49,32 @@ export default function Assignments() {
             </div>
 
             <ListGroup className="wd-lessons rounded-0">
-              <ListGroup.Item className="wd-lesson p-3 ps-1 d-flex align-items-center">
-                <BsGripVertical className="fs-3" />
-                <MdOutlineAssignment className="me-3 fs-3 text-success" />
-
-                <Row>
-                  <Col sm={12} className="fw-bold">
-                    <Link to="/Kambaz/Courses/1234/Assignments/123" className="text-decoration-none text-dark">A1</Link>
-                  </Col>
-                  <Col sm={12}>
-                    <Link to="#" className="text-decoration-none text-danger">
-                      Multiple Modules
-                    </Link>{" "}
-                    | <span className="fw-bold">Not avaliable until</span> May 6th at 12:00am |
-                  </Col>
-                  <Col sm={12}>
-                    <span className="fw-bold">Due</span> May 13th at 11:59pm | 100 pts
-                  </Col>
-                </Row>
-                <div className="wd-assignment-buttons flex-grow-1">
-                  <LessonControlButtons />
-                </div>
-              </ListGroup.Item>
-              
-              <ListGroup.Item className="wd-lesson p-3 ps-1 d-flex align-items-center">
+              {assignments
+              .filter((assignment: any) => assignment.course === cid)
+              .map((assignment: any) => (
+                <ListGroup.Item className="wd-lesson p-3 ps-1 d-flex align-items-center">
                   <BsGripVertical className="fs-3" />
                   <MdOutlineAssignment className="me-3 fs-3 text-success" />
 
                   <Row>
                     <Col sm={12} className="fw-bold">
-                      <Link to="/Kambaz/Courses/1234/Assignments/123" className="text-decoration-none text-dark">A2</Link>
+                      <Link to={`/Kambaz/Courses/${course?._id}/Assignments/${assignment._id}`} className="text-decoration-none text-dark">{assignment.title}</Link>
                     </Col>
                     <Col sm={12}>
                       <Link to="#" className="text-decoration-none text-danger">
                         Multiple Modules
                       </Link>{" "}
-                      | <span className="fw-bold">Not avaliable until</span> May 13th at 12:00am |
+                      | <span className="fw-bold">Not avaliable until</span> May 6th at 12:00am |
                     </Col>
                     <Col sm={12}>
-                      <span className="fw-bold">Due</span> May 20th at 11:59pm | 100 pts
+                      <span className="fw-bold">Due</span> May 13th at 11:59pm | 100 pts
                     </Col>
                   </Row>
                   <div className="wd-assignment-buttons flex-grow-1">
                     <LessonControlButtons />
                   </div>
-              </ListGroup.Item>
-
-              <ListGroup.Item className="wd-lesson p-3 ps-1 d-flex align-items-center">
-                  <BsGripVertical className="fs-3" />
-                  <MdOutlineAssignment className="me-3 fs-3 text-success" />
-
-                  <Row>
-                    <Col sm={12} className="fw-bold">
-                      <Link to="/Kambaz/Courses/1234/Assignments/123" className="text-decoration-none text-dark">A3</Link>
-                    </Col>
-                    <Col sm={12}>
-                      <Link to="#" className="text-decoration-none text-danger">
-                        Multiple Modules
-                      </Link>{" "}
-                      | <span className="fw-bold">Not avaliable until</span> May 20th at 12:00am |
-                    </Col>
-                    <Col sm={12}>
-                      <span className="fw-bold">Due</span> May 27th at 11:59pm | 100 pts
-                    </Col>
-                  </Row>
-                  <div className="wd-assignment-buttons flex-grow-1">
-                    <LessonControlButtons />
-                  </div>
-              </ListGroup.Item>
+                </ListGroup.Item>
+              ))}
             </ListGroup>
           </ListGroup.Item>
       </ListGroup>
