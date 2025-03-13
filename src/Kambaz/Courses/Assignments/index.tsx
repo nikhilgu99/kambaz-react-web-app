@@ -1,4 +1,4 @@
-import { Button, Col, ListGroup, Row } from "react-bootstrap";
+import { Button, Col, ListGroup, Modal, Row } from "react-bootstrap";
 import { BiPlus, BiSearch } from "react-icons/bi";
 import { BsGripVertical } from "react-icons/bs";
 import LessonControlButtons from "../Modules/LessonControlButtons";
@@ -7,12 +7,30 @@ import AssignmentControlButtons from "./AssignmentControlButtons";
 import { MdOutlineAssignment } from "react-icons/md";
 import { Link, useParams } from "react-router";
 import * as db from "../../Database";
+import { useDispatch, useSelector } from "react-redux";
+import { v4 as uuidv4 } from "uuid";
+import { useState } from "react";
+import { deleteAssignment } from "./reducer";
 
 export default function Assignments() {
+  const dispatch = useDispatch();
   const { cid } = useParams();
-  const assignments = db.assignments;
+  const { assignments } = useSelector((state: any) => state.assignmentsReducer);
   const courses = db.courses;
   const course = courses.find((course) => course._id === cid);
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteAssignemntId, setDeleteAssignmentId] = useState("");
+
+  const openDeleteModal = (assignment: any) => {
+    setShowDeleteModal(true);
+    setDeleteAssignmentId(assignment._id);
+  };
+
+  const handleClose = () => {
+    setShowDeleteModal(false);
+  };
+
   return (
     <div id="wd-assignments">
       <div
@@ -30,14 +48,20 @@ export default function Assignments() {
           />
         </div>
         <div>
-          <Button variant="secondary" size="lg" className="me-1 float-end" id="wd-add-group-btn">
-            <BiPlus className="position-relative me-2" style={{ bottom: "1px" }} />
-            Group
-          </Button>
-          <Button variant="danger" size="lg" className="me-1 float-end" id="wd-add-assignment-btn">
-            <BiPlus className="position-relative me-2" style={{ bottom: "1px" }} />
-            Assignment
-          </Button>
+        {currentUser.role === "FACULTY" && (
+          <>
+            <Button variant="secondary" size="lg" className="me-1 float-end" id="wd-add-group-btn">
+              <BiPlus className="position-relative me-2" style={{ bottom: "1px" }} />
+              Group
+            </Button>
+            <Link to={`/Kambaz/Courses/${cid}/Assignments/${uuidv4()}`}>
+              <Button variant="danger" size="lg" className="me-1 float-end" id="wd-add-assignment-btn">
+                <BiPlus className="position-relative me-2" style={{ bottom: "1px" }} />
+                Assignment
+              </Button>
+            </Link>
+          </>
+        )}
         </div>
       </div>
       <br /><br />
@@ -71,13 +95,39 @@ export default function Assignments() {
                     </Col>
                   </Row>
                   <div className="wd-assignment-buttons flex-grow-1">
-                    <LessonControlButtons />
+                    <LessonControlButtons
+                      showDeleteTrash={true}
+                      onDelete={() => {
+                        openDeleteModal(assignment);
+                      }}
+                    />
                   </div>
                 </ListGroup.Item>
               ))}
             </ListGroup>
           </ListGroup.Item>
       </ListGroup>
+      <Modal show={showDeleteModal} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            Are you sure you want to delete this assignment?
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            No
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              dispatch(deleteAssignment(deleteAssignemntId));
+              handleClose();
+            }}
+          >
+            Yes
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
