@@ -9,22 +9,33 @@ import ProtectedRoute from "./Account/ProtectedRoute";
 import Session from "./Account/Session";
 import * as userClient from "./Account/client";
 import * as courseClient from "./Courses/client";
-import { useSelector } from "react-redux";
+import * as enrollmentsClient from "./client";
+import { useDispatch } from "react-redux";
+import { setEnrollments } from "./Courses/enrollmentsReducer";
 
 export default function Kambaz() {
+  const dispatch = useDispatch();
   const [courses, setCourses] = useState<any[]>([]);
-  const { currentUser } = useSelector((state: any) => state.accountReducer);
-  const fetchCourses = async () => {
+  const fetchAllCourses = async () => {
     try {
-      const courses = await userClient.findMyCourses();
+      const courses = await courseClient.fetchAllCourses();
       setCourses(courses);
     } catch (error) {
       console.error(error);
     }
   };
+  const fetchEnrollments = async () => {
+    try {
+      const enrollments = await enrollmentsClient.getAllEnrollments();
+      dispatch(setEnrollments(enrollments.data));
+    } catch (error) {
+      console.error(error);
+    }
+  };
   useEffect(() => {
-    fetchCourses();
-  }, [currentUser]);
+    fetchAllCourses();
+    fetchEnrollments();
+  }, []);
 
   const [course, setCourse] = useState<any>({
     _id: "1234", name: "New Course", number: "New Number",
@@ -32,10 +43,12 @@ export default function Kambaz() {
   });
   const addNewCourse = async () => {
     const newCourse = await userClient.createCourse(course);
-    setCourses([ ...courses, newCourse ]);
+    const enrollments = await enrollmentsClient.getAllEnrollments();
+    dispatch(setEnrollments(enrollments.data));
+    setCourses([...courses, newCourse]);
   };
   const deleteCourse = async (courseId: any) => {
-    const status = await courseClient.deleteCourse(courseId);
+    await courseClient.deleteCourse(courseId);
     setCourses(courses.filter((course) => course._id !== courseId));
   };
   const updateCourse = async () => {
