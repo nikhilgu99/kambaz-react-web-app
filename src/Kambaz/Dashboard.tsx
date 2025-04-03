@@ -3,44 +3,75 @@ import { Button, Card, Col, FormControl } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { addEnrollment, deleteEnrollment } from "./Courses/enrollmentsReducer";
 import { v4 as uuidv4 } from "uuid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import * as userClient from "./Account/client";
 
 export default function Dashboard(
-  { courses, course, setCourse, addNewCourse,
-    deleteCourse, updateCourse }: {
-    courses: any[]; course: any; setCourse: (course: any) => void;
-    addNewCourse: () => void; deleteCourse: (course: any) => void;
-    updateCourse: () => void; 
+  {
+    courses,
+    course,
+    setCourse,
+    addNewCourse,
+    deleteCourse,
+    updateCourse,
+  }: {
+    courses: any[];
+    course: any;
+    setCourse: (course: any) => void;
+    addNewCourse: () => void;
+    deleteCourse: (course: any) => void;
+    updateCourse: () => void;
   }
 ) {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const { enrollments } = useSelector((state: any) => state.enrollmentsReducer);
-
   const [showAllCourses, setShowAllCourses] = useState(false);
-  const isUserEnrolled = (course: any) =>
-    enrollments.find(
-      (enrollment: any) =>
-        enrollment.user === currentUser._id && enrollment.course === course._id
-    );
-  const userCourses = showAllCourses
-    ? courses
-    : courses.filter((course) => isUserEnrolled(course));
+  const [userCourses, setUserCourses] = useState<any[]>([]);
+  const [myCourses, setMyCourses] = useState<any[]>([]);
 
-  const toggleEnrollment = (course: any) => {
-    const enrollment = isUserEnrolled(course);
+  const toggleEnrollment = async (course: any) => {
+    const enrollment = enrollments.find(
+      (enrollment: any) => enrollment.course === course._id && enrollment.user === currentUser._id
+    );
     if (enrollment) {
-      dispatch(deleteEnrollment({enrollmentId: enrollment._id}));
+      await userClient.deleteEnrollment(enrollment._id);
+      dispatch(deleteEnrollment({ enrollmentId: enrollment._id }));
     } else {
+      const newId = uuidv4();
+      await userClient.addEnrollment({
+        _id: newId,
+        user: currentUser._id,
+        course: course._id,
+      });
       dispatch(
         addEnrollment({
-          _id: uuidv4(),
+          _id: newId,
           user: currentUser._id,
           course: course._id,
         })
       );
     }
   };
+
+  const fetchMyCourses = async () => {
+    try {
+      const myCourses = await userClient.findMyCourses();
+      setMyCourses(myCourses);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const isUserEnrolled = (course: any) =>
+    myCourses.find((myCourse: any) => myCourse._id === course._id);
+
+  useEffect(() => {
+    fetchMyCourses();
+  }, [currentUser, courses, enrollments]);
+  useEffect(() => {
+    setUserCourses(showAllCourses ? courses : myCourses);
+  }, [showAllCourses, courses, myCourses]);
 
   return (
     <div className="p-4" id="wd-dashboard">
@@ -74,11 +105,11 @@ export default function Dashboard(
           </Button>
         </div>
       )}
-      <h2 id="wd-dashboard-published">Published Courses ({courses.length})</h2> <hr />
+      <h2 id="wd-dashboard-published">Published Courses ({userCourses.length})</h2> <hr />
       <div className="row" id="wd-dashboard-courses">
         <div className="row row-cols-1 row-cols-md-5 g-4">
           {userCourses.map((course) => (
-             <Col className="wd-dashboard-course" style={{ width: "300px" }}>
+             <Col className="wd-dashboard-course" style={{ width: "300px" }} key={course.name + course._id}>
              <Card>
                <Link to={`/Kambaz/Courses/${course._id}/Home`}
                      className="wd-dashboard-course-link text-decoration-none text-dark" >
@@ -108,7 +139,7 @@ export default function Dashboard(
                       </button>
                     </>
                   )}
-                  {currentUser.role === "STUDENT" && showAllCourses && (
+                  {currentUser.role === "STUDENT" && (
                       <Button
                         className={`btn-${
                           isUserEnrolled(course) ? "danger" : "success"

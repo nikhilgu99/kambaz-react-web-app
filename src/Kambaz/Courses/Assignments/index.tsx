@@ -6,21 +6,35 @@ import { FaCaretDown } from "react-icons/fa6";
 import AssignmentControlButtons from "./AssignmentControlButtons";
 import { MdOutlineAssignment } from "react-icons/md";
 import { Link, useParams } from "react-router";
-import * as db from "../../Database";
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { deleteAssignment } from "./reducer";
+import * as courseClient from "../client";
+import * as assignmentClient from "./client";
 
 export default function Assignments() {
   const dispatch = useDispatch();
   const { cid } = useParams();
-  const { assignments } = useSelector((state: any) => state.assignmentsReducer);
-  const courses = db.courses;
-  const course = courses.find((course) => course._id === cid);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteAssignemntId, setDeleteAssignmentId] = useState("");
+
+  const fetchAssignments = async () => {
+    try {
+      const assignments = await courseClient.findAssignmentsForCourse(
+        cid || ""
+      );
+      setAssignments(assignments);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
 
   const openDeleteModal = (assignment: any) => {
     setShowDeleteModal(true);
@@ -29,6 +43,13 @@ export default function Assignments() {
 
   const handleClose = () => {
     setShowDeleteModal(false);
+  };
+
+  const handleDelete = async () => {
+    await assignmentClient.deleteAssignment(deleteAssignemntId);
+    dispatch(deleteAssignment({ assignmentId: deleteAssignemntId }));
+    fetchAssignments();
+    handleClose();
   };
 
   return (
@@ -74,7 +95,6 @@ export default function Assignments() {
 
             <ListGroup className="wd-lessons rounded-0">
               {assignments
-              .filter((assignment: any) => assignment.course === cid)
               .map((assignment: any) => (
                 <ListGroup.Item className="wd-lesson p-3 ps-1 d-flex align-items-center">
                   <BsGripVertical className="fs-3" />
@@ -82,7 +102,7 @@ export default function Assignments() {
 
                   <Row>
                     <Col sm={12} className="fw-bold">
-                      <Link to={`/Kambaz/Courses/${course?._id}/Assignments/${assignment._id}`} className="text-decoration-none text-dark">{assignment.title}</Link>
+                      <Link to={`/Kambaz/Courses/${cid || ""}/Assignments/${assignment._id}`} className="text-decoration-none text-dark">{assignment.title}</Link>
                     </Col>
                     <Col sm={12}>
                       <Link to="#" className="text-decoration-none text-danger">
@@ -114,15 +134,12 @@ export default function Assignments() {
           </Modal.Title>
         </Modal.Header>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="secondary" onClick={ handleClose }>
             No
           </Button>
           <Button
             variant="danger"
-            onClick={() => {
-              dispatch(deleteAssignment(deleteAssignemntId));
-              handleClose();
-            }}
+            onClick={ handleDelete }
           >
             Yes
           </Button>

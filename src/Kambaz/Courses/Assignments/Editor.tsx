@@ -1,16 +1,16 @@
 import { Button, Card, Col, Row } from "react-bootstrap";
 import { Form } from "react-bootstrap";
 import { Link, useParams } from "react-router";
-import * as db from "../../Database";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateAssignment } from "./reducer";
+import * as assignmentsClient from "./client";
 
 export default function AssignmentEditor() {
   const dispatch = useDispatch();
   const { aid, cid } = useParams<{ aid: string; cid: string }>();
   const { assignments } = useSelector((state: any) => state.assignmentsReducer);
-  const [assignment, setAssignment] = useState<db.Assignment>(
+  const [assignment, setAssignment] = useState<any>(
     assignments.find((assignment: any) => assignment._id === aid) ?? {
       _id: aid ?? "",
       course: cid ?? "",
@@ -29,10 +29,16 @@ export default function AssignmentEditor() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value } = e.target;
-    setAssignment((prev) => ({ ...prev, [id]: value }));
+    setAssignment((prev: any) => ({ ...prev, [id]: value }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (assignment?.isNew) {
+      delete assignment.isNew;
+      await assignmentsClient.createAssignment(assignment);
+    } else {
+      await assignmentsClient.updateAssignment(assignment);
+    }
     dispatch(updateAssignment(assignment));
   }
 
