@@ -21,9 +21,10 @@ export default function AssignmentEditor() {
       displayType: "percentage",
       submissionType: "online",
       assignTo: "everyone",
-      releaseDate: "",
+      availableDate: "",
       dueDate: "",
       untilDate: "",
+      isNew: true,
     }
   );
 
@@ -193,13 +194,13 @@ export default function AssignmentEditor() {
 
               <Row className="mt-3">
                 <Col>
-                  <Form.Group controlId="releaseDate">
+                  <Form.Group controlId="availableDate">
                     <Form.Label className="fw-bold">Available from</Form.Label>
                     <Form.Control
                       type="datetime-local"
                       value={
-                        assignment.releaseDate
-                          ? new Date(assignment.releaseDate)
+                        assignment.availableDate
+                          ? new Date(assignment.availableDate)
                               .toISOString()
                               .slice(0, 16)
                           : ""

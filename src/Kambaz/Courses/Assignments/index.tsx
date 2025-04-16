@@ -20,11 +20,13 @@ export default function Assignments() {
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteAssignemntId, setDeleteAssignmentId] = useState("");
+  const [searchText, setSearchText] = useState("");
 
   const fetchAssignments = async () => {
     try {
       const assignments = await courseClient.findAssignmentsForCourse(
-        cid || ""
+        cid as string,
+        searchText
       );
       setAssignments(assignments);
     } catch (error) {
@@ -34,7 +36,7 @@ export default function Assignments() {
 
   useEffect(() => {
     fetchAssignments();
-  }, []);
+  }, [searchText]);
 
   const openDeleteModal = (assignment: any) => {
     setShowDeleteModal(true);
@@ -63,13 +65,15 @@ export default function Assignments() {
             <BiSearch />
           </span>
           <input
+            type="text"
             placeholder="Search..."
             id="wd-search-assignment"
             className="form-control"
+            onChange={(e) => setSearchText(e.target.value)}
           />
         </div>
         <div>
-        {currentUser.role === "FACULTY" && (
+        {(currentUser.role === "FACULTY" || currentUser.role === "ADMIN") && (
           <>
             <Button variant="secondary" size="lg" className="me-1 float-end" id="wd-add-group-btn">
               <BiPlus className="position-relative me-2" style={{ bottom: "1px" }} />
@@ -102,16 +106,36 @@ export default function Assignments() {
 
                   <Row>
                     <Col sm={12} className="fw-bold">
+                    {(currentUser.role === "FACULTY" || currentUser.role === "ADMIN") ? (
                       <Link to={`/Kambaz/Courses/${cid || ""}/Assignments/${assignment._id}`} className="text-decoration-none text-dark">{assignment.title}</Link>
-                    </Col>
+                    ) : (
+                      <>{assignment.title}</>
+                    )}
+                      </Col>
                     <Col sm={12}>
                       <Link to="#" className="text-decoration-none text-danger">
                         Multiple Modules
                       </Link>{" "}
-                      | <span className="fw-bold">Not avaliable until</span> May 6th at 12:00am |
+                      | <span className="fw-bold">Not avaliable until</span>
+                      {" "}
+                      {new Date(assignment.availableDate ?? "").toLocaleString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        hour12: true,
+                      })}{" "} |
                     </Col>
                     <Col sm={12}>
-                      <span className="fw-bold">Due</span> May 13th at 11:59pm | 100 pts
+                      <span className="fw-bold">Due</span>
+                      {" "}
+                      {new Date(assignment.dueDate ?? "").toLocaleString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        hour12: true,
+                      })}{" "} | {assignment.points} pts
                     </Col>
                   </Row>
                   <div className="wd-assignment-buttons flex-grow-1">

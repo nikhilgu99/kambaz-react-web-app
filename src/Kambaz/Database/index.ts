@@ -2,7 +2,7 @@ interface Assignment {
   _id: string;
   title: string;
   course: string;
-  releaseDate: string;
+  availableDate: string;
   dueDate: string;
   untilDate: string;
   points: number;
