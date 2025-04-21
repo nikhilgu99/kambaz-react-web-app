@@ -1,0 +1,26 @@
+[
+  {
+      "_id": "quiz-example",
+      "course": "RS101",
+      "title": "Example Quiz 1",
+      "quizType": "Graded Quiz",
+      "assignmentGroup": "Quizzes",
+      "points": 30,
+      "numberOfQuestions": 3,
+      "shuffleAnswers": "true",
+      "timeLimit": "20 Minutes",
+      "multipleAttempts": "false",
+      "howManyAttempts": 1,
+      "showCorrectAnswers": "false",
+      "accessCode": "",
+      "oneQuestionAtATime": "true",
+      "webcamRequired": "false",
+      "lockQuestionsAfterAnswering": "false",
+      "dueDate": "2025-05-01T12:59",
+      "availableDate": "2025-04-01T12:59",
+      "availableUntilDate": "2025-05-08T12:59",
+      "published": "false",
+      "score": {},
+      "userAttempts": {}
+  }
+]

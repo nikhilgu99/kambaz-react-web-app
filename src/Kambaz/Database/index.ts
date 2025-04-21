@@ -19,5 +19,7 @@ import courses from "./courses.json";
 import enrollments from "./enrollments.json";
 import modules from "./modules.json";
 import users from "./users.json";
-export {  assignments, courses, enrollments, modules, users  };
+import quizzes from "./quizzes.json";
+import questions from "./questions.json";
+export {  assignments, courses, enrollments, modules, users, quizzes, questions };
 export type { Assignment };
