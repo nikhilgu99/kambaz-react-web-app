@@ -12,6 +12,7 @@ export default function Profile() {
   const updateProfile = async () => {
     const updatedProfile = await client.updateUser(profile);
     dispatch(setCurrentUser(updatedProfile));
+    alert("Profile updated. Please sign out and sign back in.")
   };
   const fetchProfile = () => {
     if (!currentUser) return navigate("/Kambaz/Account/Signin");
