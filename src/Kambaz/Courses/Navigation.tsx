@@ -1,10 +1,26 @@
+import { useEffect, useState } from "react";
 import { useLocation, useParams } from "react-router";
 import { Link } from "react-router-dom";
-import { courses } from "../Database";
+import * as courseClient from "./client";
+
 export default function CourseNavigation() {
   const links = ["Home", "Modules", "Piazza", "Zoom", "Assignments", "Quizzes", "Grades", "People"];
   const { pathname } = useLocation();
   const { cid } = useParams();
+  const [courses, setCourses] = useState<any[]>([]);
+
+  const fetchCourses = async () => {
+    try {
+      const allCourses = await courseClient.fetchAllCourses();
+      setCourses(allCourses);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
   const course = courses.find((course) => course._id === cid);
   return (
     <div id="wd-courses-navigation" className="wd list-group fs-5 rounded-0">
