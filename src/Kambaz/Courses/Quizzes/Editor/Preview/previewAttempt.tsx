@@ -77,7 +77,14 @@ export default function QuizPreviewAttempt() {
 
       <div className="mb-3">
         {hasPreviousAttempt ? (
-          <div className="alert alert-info">Previous Attempt Loaded.</div>
+          <div className="alert alert-info d-flex justify-content-between">
+            <span>Previous Attempt Loaded</span>
+            <span>Score: {
+              Array.isArray(currentQuiz.score[currentUser._id]) && currentQuiz.score[currentUser._id].length > 0
+                ? currentQuiz.score[currentUser._id][currentQuiz.score[currentUser._id].length - 1] + "/" + currentQuiz.points
+                : ""
+            }</span>
+          </div>
         ) : (
           <div className="alert alert-warning">No Previous Attempt.</div>
         )}

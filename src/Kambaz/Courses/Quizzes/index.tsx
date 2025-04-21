@@ -111,6 +111,13 @@ export default function Quizzes() {
         <span>Quizzes</span>
       </div>
 
+      {quizzes
+        .filter((quiz: any) => quiz.course === cid).length === 0 && currentUser.role === "FACULTY" && (
+        <div className="alert alert-info mt-2">
+          No quizzes, click the add quiz (+ Quiz) button.
+        </div>
+      )}
+
       <ul id="wd-quiz-list" className="list-group rounded-0 wd">
         {quizzes
           .filter((quiz: any) => quiz.course === cid)

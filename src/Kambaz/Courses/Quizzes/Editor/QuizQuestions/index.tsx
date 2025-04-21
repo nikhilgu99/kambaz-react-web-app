@@ -5,7 +5,8 @@ import NewQuestionEditor from "./QuizQuestionsEditor";
 import { useNavigate } from "react-router-dom";
 import { updateQuestionSet } from "./reducer.ts";
 import { updateQuestionnSet, findQuestionsByQuizId} from "../../client.ts";
-
+import { updateQuiz } from "../../reducer.ts";
+import * as quizzesClient from "../../client";
 
 export default function QuizQuestions() {
   const dispatch = useDispatch();
@@ -22,14 +23,45 @@ export default function QuizQuestions() {
   const [showModal, setShowModal] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
 
+  const quizzes = useSelector((state: any) => state.quizReducer.quizzes);
+  const existingQuiz = qid ? quizzes.find((q: any) => q._id === qid) : null;
+
+  const [quiz, setQuiz] = useState({
+    title: "Default",
+    description: "",
+    quizType: "Graded Quiz",
+    assignmentGroup: "Quizzes",
+    points: 0,
+    shuffleAnswers: true,
+    timeLimit: "20 Minutes",
+    multipleAttempts: false,
+    howManyAttempts: 1,
+    numberOfQuestions: 0,
+    showCorrectAnswers: false,
+    accessCode: "",
+    oneQuestionAtATime: true,
+    webcamRequired: false,
+    lockQuestionsAfterAnswering: false,
+    dueDate: "",
+    availableDate: "",
+    availableUntilDate: "",
+    course: "",
+    published: false,
+    score: {},
+    userAttempts: {}
+  });
+
     useEffect(() => {
       const fetchQuestionsForQuiz = async () => {
         const questionSet = await findQuestionsByQuizId(qid!);
         setDraftQuestions(questionSet ? questionSet.questions : []);
       };
+      if (existingQuiz) {
+        setQuiz(existingQuiz);
+      }
       
       if (qid) fetchQuestionsForQuiz();
-    }, [qid]);
+    }, [qid, existingQuiz]);
 
   const handleEdit = (question: any) => {
     setEditingQuestion(question);
@@ -59,9 +91,17 @@ export default function QuizQuestions() {
   };
 
   const handleCommitChanges = async () => {
+    const newPoints = draftQuestions.length > 0 
+      ? draftQuestions.reduce((total: number, q: any) => total + q.points, 0)
+      : 0;
+    setQuiz(prev => ({ ...prev, points: newPoints }));
+    dispatch(updateQuiz(quiz));
+    await quizzesClient.updateQuiz(quiz);
+    
     await updateQuestionnSet(qid!, draftQuestions);
     dispatch(updateQuestionSet({ quiz: qid, questions: draftQuestions }));
     navigate(-1);
+    
   };
 
   const handleCancelChanges = () => {

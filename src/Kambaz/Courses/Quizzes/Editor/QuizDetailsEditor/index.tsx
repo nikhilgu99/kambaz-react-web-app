@@ -4,7 +4,7 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { addQuiz, updateQuiz } from "../../reducer";
+import { addQuiz, togglePublish, updateQuiz } from "../../reducer";
 import { v4 as uuidv4 } from "uuid";
 import * as coursesClient from "../../../client";
 import * as quizzesClient from "../../client";
@@ -61,13 +61,40 @@ export default function QuizEditor() {
     if (existingQuiz) {
       await quizzesClient.updateQuiz(quiz);
       dispatch(updateQuiz(quiz));
+      navigate(`/Kambaz/Courses/${cid}/Quizzes/${qid}`);
     } else {
       const newQuiz = { ...quiz, _id: uuidv4(), course: cid };
       const createdQuiz = await coursesClient.createQuizzesForCourse(cid!, newQuiz);
       dispatch(addQuiz(createdQuiz));
+      navigate(`/Kambaz/Courses/${cid}/Quizzes/${createdQuiz._id}`);
     }
-    navigate(`/Kambaz/Courses/${cid}/Quizzes`);
+    
   };
+
+  const handlePublishQuiz = async (quizId: string) => {
+    const quiz = quizzes.find((q: any) => q._id === quizId);
+    if (!quiz) return;
+    const newPublished = quiz.published === "true" ? "false" : "true";
+    await quizzesClient.togglePublishQuiz(quizId, newPublished);
+    dispatch(togglePublish(quizId));
+  };
+  
+  const handleSaveAndPublish = async () => {
+    if (existingQuiz) {
+      await quizzesClient.updateQuiz(quiz);
+      dispatch(updateQuiz(quiz));
+      if (qid) {
+        await handlePublishQuiz(qid);
+      }
+    } else {
+      const newQuiz = { ...quiz, _id: uuidv4(), course: cid };
+      const createdQuiz = await coursesClient.createQuizzesForCourse(cid!, newQuiz);
+      dispatch(addQuiz(createdQuiz));
+      await handlePublishQuiz(newQuiz._id);
+    }
+    
+    navigate(`/Kambaz/Courses/${cid}/Quizzes`);
+  }
 
   return (
     <div id="wd-quiz-editor" className="p-4 bg-light border rounded">
@@ -127,7 +154,7 @@ export default function QuizEditor() {
             type="number"
             id="points"
             value={quiz.points}
-            onChange={handleChange}
+            disabled
           />
         </Form.Group>
 
@@ -148,7 +175,7 @@ export default function QuizEditor() {
             type="checkbox"
             id="shuffleAnswers"
             label="Shuffle Answers"
-            checked={Boolean(quiz.shuffleAnswers)}
+            checked={String(quiz.shuffleAnswers) === "true"}
             onChange={handleCheckboxChange}
           />
         </Form.Group>
@@ -158,7 +185,7 @@ export default function QuizEditor() {
             type="checkbox"
             id="multipleAttempts"
             label="Allow Multiple Attempts"
-            checked={Boolean(quiz.multipleAttempts)}
+            checked={String(quiz.multipleAttempts) === "true"}
             onChange={handleCheckboxChange}
           />
         </Form.Group>
@@ -181,7 +208,7 @@ export default function QuizEditor() {
             type="checkbox"
             id="showCorrectAnswers"
             label="Show Correct Answers"
-            checked={Boolean(quiz.showCorrectAnswers)}
+            checked={String(quiz.showCorrectAnswers) === "true"}
             onChange={handleCheckboxChange}
           />
         </Form.Group>
@@ -202,7 +229,7 @@ export default function QuizEditor() {
             type="checkbox"
             id="oneQuestionAtATime"
             label="One Question at a Time"
-            checked={Boolean(quiz.oneQuestionAtATime)}
+            checked={String(quiz.oneQuestionAtATime) === "true"}
             onChange={handleCheckboxChange}
           />
         </Form.Group>
@@ -212,7 +239,7 @@ export default function QuizEditor() {
             type="checkbox"
             id="webcamRequired"
             label="Webcam Required"
-            checked={Boolean(quiz.webcamRequired)}
+            checked={String(quiz.webcamRequired) === "true"}
             onChange={handleCheckboxChange}
           />
         </Form.Group>
@@ -222,7 +249,7 @@ export default function QuizEditor() {
             type="checkbox"
             id="lockQuestionsAfterAnswering"
             label="Lock Questions After Answering"
-            checked={Boolean(quiz.lockQuestionsAfterAnswering)}
+            checked={String(quiz.lockQuestionsAfterAnswering) === "true"}
             onChange={handleCheckboxChange}
           />
         </Form.Group>
@@ -264,9 +291,14 @@ export default function QuizEditor() {
           >
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSave}>
-            Save
-          </Button>
+          <div className="d-flex gap-2">
+            <Button variant="primary" onClick={handleSave}>
+              Save
+            </Button>
+            <Button variant="primary" onClick={handleSaveAndPublish}>
+              Save and Publish
+            </Button>
+          </div>
         </div>
       </Form>
     </div>

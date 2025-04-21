@@ -34,7 +34,7 @@ export default function QuizDetails() {
   const currentUser = useSelector((state: any) => state.accountReducer.currentUser);
   const [quizDetails, setQuizDetails] = useState(exampleQuizDetails) as any;
 
-  const boolToStr = (value: any) => (value ? "Yes" : "No");
+  const boolToStr = (value: any) => (value === "true" ? "Yes" : "No");
 
   const handleStartQuiz = () => {
     navigate(`/Kambaz/Courses/${cid}/Quizzes/${qid}/preview`);
@@ -168,15 +168,12 @@ export default function QuizDetails() {
         </div>
         )}
 
-        {currentUser.role === "STUDENT" && (
-          <div className="row mb-2">
-            <div className="col-6 text-end"><b>Remaining Attempts:</b></div>
-            <div className="col-6 text-start">
-              {quizDetails.howManyAttempts - (quizDetails.userAttempts?.[currentUser._id] ?? 0)}
-            </div>
+        <div className="row mb-2">
+          <div className="col-6 text-end"><b>Remaining Attempts:</b></div>
+          <div className="col-6 text-start">
+            {quizDetails.howManyAttempts - (quizDetails.userAttempts?.[currentUser._id] ?? 0)}
           </div>
-        )}
-
+        </div>
 
         {currentUser.role === "STUDENT" && (
           <div className="row mb-2">
@@ -196,6 +193,15 @@ export default function QuizDetails() {
                 View Previous Results
               </button>
             </div>
+          </div>
+        )}
+
+        {currentUser.role === "FACULTY" && (
+          <div className="d-flex justify-content-center">
+            <button className="btn btn-outline-danger" onClick={handleViewQuiz}>
+              <RiNumbersLine className="me-2" />
+              View Previous Results
+            </button>
           </div>
         )}
       </div>
